@@ -3,6 +3,7 @@ import {execSync} from 'child_process';
 import os from 'node:os';
 import https from 'node:https';
 import fs from 'node:fs';
+import path from 'node:path';
 
 const download = (url) => {
   console.log(`Downloading ${url}`);
@@ -10,16 +11,15 @@ const download = (url) => {
     https.get(url, (res) => {
       const file_name = (Math.random() + 1).toString(36).substring(7);
       const file_path = `${os.tmpdir()}/${file_name}`;
-      const filePath = fs.createWriteStream(file_path);
+      const wstream = fs.createWriteStream(file_path);
       let resolved = false;
-      res.pipe(filePath);
-      filePath.on('finish', () => {
-        filePath.close();
-        console.log(`Download completed`);
+      res.pipe(wstream);
+      wstream.on('finish', () => {
+        wstream.close();
         resolved = true;
         resolve(file_path);
       });
-      filePath.on("exit", () => {
+      wstream.on("exit", () => {
         if (!resolved) {
           console.log(`Failed to download ${url}`);
           reject();
@@ -29,7 +29,7 @@ const download = (url) => {
   });
 }
 
-const shell = (cmd) => execSync(cmd, {encoding: 'utf8'});
+const shell = cmd => execSync(cmd, {encoding: 'utf8'});
 
 const install_zig = async (version) => {
   const versions = await fetch('https://ziglang.org/download/index.json').then(r => r.json());
@@ -69,8 +69,17 @@ const install_zig = async (version) => {
   }
 
   const file_path = await download(links["tarball"]);
+  const file_name = path.basename(links["tarball"]);
+  const file_dir = path.dirname(file_path);
+  console.log(`Extracting ${file_name}`);
+  shell(`tar -xf ${file_path} -C ${file_dir}`);
 
-  console.log({version, links, file_path});
+  const zig_dir = path.join(file_dir, file_name.replace(/\.tar\.xz$|\.zip$/, ''));
+  console.log(`Moving to ~/.zig`);
+  shell(`rm -rf ~/.zig/ && mv ${zig_dir} ~/.zig/ && rm ${file_path}`);
+
+  console.log('Done\nAdd this to your ~/.bashrc');
+  console.log('\x1b[36m%s\x1b[0m', '\nexport PATH=$PATH:$HOME/.zig\n');
 };
 
 const install_zls = async (version) => {
@@ -116,5 +125,3 @@ function show_help() {
 
   `);
 }
-
-// [ ] Write an error if fzf is not installed.
