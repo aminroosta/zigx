@@ -1,0 +1,21 @@
+{
+  "name": "zigx",
+  "version": "1.0.0",
+  "license": "MIT",
+  "main": "./lib.js",
+  "type": "module",
+  "scripts": {
+    "zigx": "node index.js"
+  },
+  "bin": {
+    "zigx": "./index.js"
+  },
+  "author": {
+    "name": "Amin Roosta",
+    "url": "https://github.com/aminroosta"
+  },
+  "dependencies": {
+    "command-line-args": "^5.2.1",
+    "fzf-node": "^0.1.3"
+  }
+}
