@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import {fzf} from 'fzf-node'
-import {execSync} from 'child_process';
 import os from 'node:os';
 import https from 'node:https';
 import fs from 'node:fs';
 import path from 'node:path';
+import shell from 'shelljs';
 
 const download = (url) => {
   console.log(`Downloading ${url}`);
@@ -29,8 +29,6 @@ const download = (url) => {
     })
   });
 }
-
-const shell = cmd => execSync(cmd, {encoding: 'utf8'});
 
 const install_zig = async (version) => {
   const versions = await fetch('https://ziglang.org/download/index.json').then(r => r.json());
@@ -60,7 +58,7 @@ const install_zig = async (version) => {
   }
 
   if (!versions[version]) {
-    return console.log(`version = ${version} not found`);
+    return console.log(`version='${version}' not found`);
   }
 
   const links = versions[version][arch + "-" + platform];
@@ -73,56 +71,59 @@ const install_zig = async (version) => {
   const file_name = path.basename(links["tarball"]);
   const file_dir = path.dirname(file_path);
   console.log(`Extracting ${file_name}`);
-  shell(`tar -xf ${file_path} -C ${file_dir}`);
+  shell.exec(`tar -xf ${file_path} -C ${file_dir}`);
 
   const zig_dir = path.join(file_dir, file_name.replace(/\.tar\.xz$|\.zip$/, ''));
   console.log(`Moving to ~/.zig`);
-  shell(`rm -rf ~/.zig/ && mv ${zig_dir} ~/.zig/ && rm ${file_path}`);
+  shell.exec(`rm -rf ~/.zig/ && mv ${zig_dir} ~/.zig/ && rm ${file_path}`);
 
   console.log('Done\nAdd this to your ~/.bashrc');
   console.log('\x1b[36m%s\x1b[0m', '\nexport PATH=$PATH:$HOME/.zig\n');
 };
 
-const install_zls = async (version) => {
-};
+// const install_zls = async () => {
+//   shell.exec('rm -rf ~/.zls/', {silent: false});
+//   shell.exec('git clone https://github.com/zigtools/zls.git ~/.zls', {silent: false});
+//   shell.cd('~/.zls/', {silent: false});
+//   shell.echo('zig build -Doptimize=ReleaseSafe');
+//   shell.exec('~/.zig/zig build -Doptimize=ReleaseSafe', {silent: false});
+// };
+
+const list_versions = async () => {
+  const versions = await fetch('https://ziglang.org/download/index.json').then(r => r.json());
+  Object.keys(versions).forEach(v => console.log(v));
+}
 
 
 (async () => {
-  const [_node_path, _file_path, next = '', version = ''] = process.argv;
+  const [_node_path, _file_path, next = ''] = process.argv;
 
-  let has_fzf = true;
-  try {shell(`which fzf`)} catch (error) {has_fzf = false;}
+  let has_fzf = shell.which('fzf');
 
   if (next == 'help' || next == '--help') {
-    show_help();
-  } else if (!has_fzf) {
-    if (next === "zig" && version) {
-      install_zig(version);
-    } else if (next == "zls" && version) {
-      install_zls(version);
-    } else {
-      show_help();
-    }
-  } else {
-    const next_ = next || await fzf(["zig", "zls"], [])
-    if (next_ === "zig") {
-      install_zig(version);
-    } else {
-      install_zls(version);
-    }
+    return show_help();
   }
+  if (next == 'list') {
+    return await list_versions();
+  }
+  // if (next == 'zls') {
+  //   return await install_zls();
+  // }
+  if (!has_fzf && !next) {
+    return show_help();
+  }
+  return await install_zig(next);
 })();
 
 function show_help() {
   console.log(`USAGE ↓
-   zigx help        # show this message
-   zigx zig master  # install zig master version
-   zigx zls master  # build zls from the master
+   zigx help    # show this message
+   zigx list    # list zig versions
+   zigx 0.10.1  # install zig v0.10.1
+   zigx master  # install zig master version
         
    # Note: fuzzy search is available if "fzf" is installed.
-   zigx zig         # Choose a zig version to install
-   zigx zls         # Choose a pre-built zls version
-   zigx             # Choose what to install
+   zigx         # Choose the version to install
 
   `);
 }
