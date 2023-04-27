@@ -1,14 +1,14 @@
 {
   "name": "zigx",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "license": "MIT",
-  "main": "./lib.js",
+  "main": "./index.mjs",
   "type": "module",
   "scripts": {
-    "zigx": "node index.js"
+    "zigx": "node index.mjs"
   },
   "bin": {
-    "zigx": "./index.js"
+    "zigx": "./index.mjs"
   },
   "author": {
     "name": "Amin Roosta",

@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import {fzf} from 'fzf-node'
 import {execSync} from 'child_process';
 import os from 'node:os';
