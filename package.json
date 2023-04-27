@@ -15,7 +15,6 @@
     "url": "https://github.com/aminroosta"
   },
   "dependencies": {
-    "command-line-args": "^5.2.1",
     "fzf-node": "^0.1.3"
   }
 }
