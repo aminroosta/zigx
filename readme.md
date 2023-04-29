@@ -93,10 +93,10 @@ Downloading https://ziglang.org/builds/zig-macos-aarch64-0.11.0-dev.2868+1a455b2
 Extracting zig-macos-aarch64-0.11.0-dev.2868+1a455b2dd.tar.xz
 Moving to ~/.zig
 Building zls from source
- git clone https://github.com/zigtools/zls.git ~/.zls
- ~/.zig/zig build -Doptimize=ReleaseSaf
- please wait ...
- cp -f ./zig-out/bin/zls ~/.zig/
+> git clone https://github.com/zigtools/zls.git ~/.zls
+> ~/.zig/zig build -Doptimize=ReleaseSafe
+> please wait ...
+> cp -f ./zig-out/bin/zls ~/.zig/
 Done
 Add this to your ~/.bashrc
 

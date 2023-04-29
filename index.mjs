@@ -90,7 +90,7 @@ const install_zls = async () => {
   console.log(`Building zls from source`);
   shell.exec('rm -rf ~/.zls/');
 
-  console.log(' git clone https://github.com/zigtools/zls.git ~/.zls');
+  console.log('> git clone https://github.com/zigtools/zls.git ~/.zls');
   shell.exec('git clone https://github.com/zigtools/zls.git ~/.zls', {silent: true});
 
   shell.cd('~/.zls/');
@@ -127,11 +127,11 @@ const install_zls = async () => {
     }
     break;
   }
-  console.log(' ~/.zig/zig build -Doptimize=ReleaseSaf');
-  console.log(' please wait ...');
+  console.log('> ~/.zig/zig build -Doptimize=ReleaseSafe');
+  console.log('> please wait ...');
   shell.exec('~/.zig/zig build -Doptimize=ReleaseSafe', {silent: true});
 
-  console.log(' cp -f ./zig-out/bin/zls ~/.zig/');
+  console.log('> cp -f ./zig-out/bin/zls ~/.zig/');
   shell.exec('cp -f ./zig-out/bin/zls ~/.zig/');
 
   shell.cd('-');
