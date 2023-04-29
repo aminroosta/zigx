@@ -5,6 +5,7 @@ import https from 'node:https';
 import fs from 'node:fs';
 import path from 'node:path';
 import shell from 'shelljs';
+import {satisfies} from 'compare-versions';
 
 const download = (url) => {
   console.log(`Downloading ${url}`);
@@ -77,17 +78,65 @@ const install_zig = async (version) => {
   console.log(`Moving to ~/.zig`);
   shell.exec(`rm -rf ~/.zig/ && mv ${zig_dir} ~/.zig/ && rm ${file_path}`);
 
+  if (version == 'master') {
+    install_zls();
+  }
+
   console.log('Done\nAdd this to your ~/.bashrc');
   console.log('\x1b[36m%s\x1b[0m', '\nexport PATH=$PATH:$HOME/.zig\n');
 };
 
-// const install_zls = async () => {
-//   shell.exec('rm -rf ~/.zls/', {silent: false});
-//   shell.exec('git clone https://github.com/zigtools/zls.git ~/.zls', {silent: false});
-//   shell.cd('~/.zls/', {silent: false});
-//   shell.echo('zig build -Doptimize=ReleaseSafe');
-//   shell.exec('~/.zig/zig build -Doptimize=ReleaseSafe', {silent: false});
-// };
+const install_zls = async () => {
+  console.log(`Building zls from source`);
+  shell.exec('rm -rf ~/.zls/');
+
+  console.log(' git clone https://github.com/zigtools/zls.git ~/.zls');
+  shell.exec('git clone https://github.com/zigtools/zls.git ~/.zls', {silent: true});
+
+  shell.cd('~/.zls/');
+
+  const commits = shell.exec('git log --oneline -- build.zig', {silent: true})
+    .stdout
+    .split('\n')
+    .filter(line => line)
+    .map(l => l.split(' ')[0]);
+
+  const zig_version = shell.exec('~/.zig/zig version', {silent: true})
+    .stdout
+    .trim();
+
+  // get min zig version from zls/build.zig,
+  // example: 0.10.0-dev.4458+b120c819d
+  while (true) {
+    const min_version = shell.exec('cat build.zig', {silent: true})
+      .stdout
+      .split('\n')
+      .filter(l => l.includes('std.SemanticVersion.parse'))
+    [0].split('"')[1];
+
+    const [zig_major, zig_minor] = zig_version.split(/-dev\.|\+/);
+    const [min_major, min_minor] = min_version.split(/-dev\.|\+/);
+    const version_is_ok = satisfies(zig_major, '>=' + min_major) &&
+      (zig_minor * 1) >= (min_minor * 1);
+
+    if (!version_is_ok) {
+      const commit = commits.shift();
+      console.log(" git checkout " + commit);
+      shell.exec("git checkout " + commit, {silent: true});
+      continue;
+    }
+    break;
+  }
+  console.log(' ~/.zig/zig build -Doptimize=ReleaseSaf');
+  console.log(' please wait ...');
+  shell.exec('~/.zig/zig build -Doptimize=ReleaseSafe', {silent: true});
+
+  console.log(' cp -f ./zig-out/bin/zls ~/.zig/');
+  shell.exec('cp -f ./zig-out/bin/zls ~/.zig/');
+
+  shell.cd('-');
+  shell.exec('rm -rf ~/.zls/');
+};
 
 const list_versions = async () => {
   const versions = await fetch('https://ziglang.org/download/index.json').then(r => r.json());
