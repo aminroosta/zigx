@@ -82,4 +82,39 @@ $ zigx
    0.4.0
 ```
 
-# zls
+## Building zls from source
+If you install the master version of zig using zigx, it will also build the Zig
+Language Server (`zls`) from source. This can be done by running the `zigx master`
+command, as shown in the example below:
+
+```bash
+$ zigx master
+Downloading https://ziglang.org/builds/zig-macos-aarch64-0.11.0-dev.2868+1a455b2dd.tar.xz
+Extracting zig-macos-aarch64-0.11.0-dev.2868+1a455b2dd.tar.xz
+Moving to ~/.zig
+Building zls from source
+ git clone https://github.com/zigtools/zls.git ~/.zls
+ ~/.zig/zig build -Doptimize=ReleaseSaf
+ please wait ...
+ cp -f ./zig-out/bin/zls ~/.zig/
+Done
+Add this to your ~/.bashrc
+
+export PATH=$PATH:$HOME/.zig
+```
+
+When you run zigx master, the tool will download and install the latest
+development version of Zig, and then proceed to build the zls from source. The
+source code for the zls will be cloned from the `zigtools/zls` repository to the
+`~/.zls` directory, and then compiled using the `~/.zig/zig` binary. Once the build
+process is complete, the resulting `zls` binary will be copied to `~/.zig/`, and
+the `~/.zls` folder will be removed.
+
+Don't forget to add the following line to your `~/.bashrc`:
+This will allow you to use the zls with any editor or IDE that supports the
+Language Server Protocol (LSP).
+```bash
+export PATH=$PATH:$HOME/.zig
+```
+Note that building zls from source may take some time, depending on your
+system's configuration and the speed of your internet connection.
